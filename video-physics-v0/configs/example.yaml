@@ -1,0 +1,34 @@
+task: "projectile motion: track the red ball"
+mode: lite # lite | open_vocab (OV tools are stubs in this MVP)
+
+# Lite-mode color mask (HSV). Adjust for your synthetic video.
+color_hsv:
+  lower: [0, 120, 120] # e.g., red (h wraps; tweak as needed)
+  upper: [10, 255, 255]
+# Optional second range for red wrap-around (350–360deg equivalent)
+color_hsv_alt:
+  lower: [170, 120, 120]
+  upper: [179, 255, 255]
+
+min_area: 50 # min contour area to accept (pixels^2)
+morph:
+  open_kernel: 3 # morphological opening kernel size
+  close_kernel: 5
+
+sampling:
+  fps_override: null # set to a number to override video fps
+
+savgol:
+  window: 21 # odd number
+  polyorder: 3
+  deriv_mode: gradient # gradient | savgol
+
+output:
+  csv_path: outputs/track.csv
+  overlay_path: outputs/overlay.mp4
+
+sindy:
+  enabled: true
+  poly_degree: 3
+  thresh: 0.01
+  discrete_time: false

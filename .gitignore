@@ -1,0 +1,10 @@
+*.pyc
+/synthetic_dataset/*
+*.csv
+*.png
+*.mp4
+/outputs/*
+/video-physics-v0/outputs/*
+run.sh
+
+
