@@ -1,0 +1,36 @@
+{
+  "name": "SHO_horizontal",
+  "fps": 60,
+  "width_px": 640,
+  "height_px": 480,
+  "ball_color_bgr": [
+    0,
+    0,
+    255
+  ],
+  "hsv_range_main": {
+    "lower": [
+      0,
+      120,
+      120
+    ],
+    "upper": [
+      10,
+      255,
+      255
+    ]
+  },
+  "hsv_range_alt": {
+    "lower": [
+      170,
+      120,
+      120
+    ],
+    "upper": [
+      179,
+      255,
+      255
+    ]
+  },
+  "note": "Coordinates in pixel units; origin top-left; y increases downward."
+}

@@ -1,5 +1,5 @@
 *.pyc
-/synthetic_dataset/*
+/synthetic_dataset/*.mp4
 *.csv
 *.png
 *.mp4
