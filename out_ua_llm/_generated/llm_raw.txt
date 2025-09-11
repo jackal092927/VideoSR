@@ -1,0 +1,8 @@
+{
+  "motion_class": "uniform_acceleration_1d",
+  "detector": "hsv",
+  "hsv_lower": [20, 80, 50],
+  "hsv_upper": [40, 255, 255],
+  "min_area": 50,
+  "morph_kernel": 5
+}

@@ -1,0 +1,16 @@
+{
+  "motion_class": "projectile",
+  "detector": "hsv",
+  "hsv_lower": [
+    100,
+    80,
+    50
+  ],
+  "hsv_upper": [
+    130,
+    255,
+    255
+  ],
+  "min_area": 50,
+  "morph_kernel": 5
+}

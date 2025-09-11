@@ -1,0 +1,8 @@
+{
+  "csv_exists": true,
+  "annotated_exists": true,
+  "plots_dir_exists": true,
+  "fit_params_exists": true,
+  "detection_rate": 1.0,
+  "r2_primary": 0.929113365038704
+}

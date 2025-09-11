@@ -1,0 +1,52 @@
+{
+  "detection": {
+    "method": "hsv",
+    "hsv_lower": [
+      0,
+      90,
+      70
+    ],
+    "hsv_upper": [
+      10,
+      255,
+      255
+    ],
+    "hsv_lower2": [
+      160,
+      90,
+      70
+    ],
+    "hsv_upper2": [
+      179,
+      255,
+      255
+    ],
+    "morph_kernel": 5,
+    "min_area": 40,
+    "roi": null
+  },
+  "tracking": {
+    "interpolate_max_gap": 5,
+    "kalman": false
+  },
+  "smoothing": {
+    "method": "savgol",
+    "window": 9,
+    "polyorder": 2,
+    "sigma": 1.0
+  },
+  "physics": {
+    "fit": "projectile",
+    "gravity": 9.81,
+    "pixels_per_meter": null,
+    "y_axis_down": true
+  },
+  "output": {
+    "annotated_video": true,
+    "plots": true,
+    "draw_trail": 50,
+    "csv_name": "measurements.csv",
+    "annotated_name": "annotated.mp4",
+    "plots_prefix": "plot"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "motion_class": "free_fall",
+  "detector": "hsv",
+  "hsv_lower": [0, 80, 50],
+  "hsv_upper": [10, 255, 255],
+  "min_area": 50,
+  "morph_kernel": 5
+}

@@ -1,0 +1,26 @@
+{
+  "motion_characteristics": {
+    "total_frames": 96,
+    "duration": 3.9583333333333335,
+    "avg_speed": 497.66962720383646,
+    "max_speed": 1739.2964094713702,
+    "avg_acceleration": 10525.536645877708
+  },
+  "trajectory_stats": {
+    "total_displacement": 26.40075756488817,
+    "path_length": 3979.9249794069165,
+    "net_displacement_ratio": 0.006633481209191631
+  },
+  "physics_model": {
+    "model": "inclined_plane",
+    "parameters": {
+      "final_speed": 495.80442949934087,
+      "initial_acceleration": -899.8971681246545,
+      "distance_traveled": 26.40075756488817
+    },
+    "observations": {
+      "constant_velocity_achieved": false,
+      "friction_effects": true
+    }
+  }
+}

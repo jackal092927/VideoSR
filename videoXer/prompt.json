@@ -1,0 +1,81 @@
+{
+    "problem": {
+      "title": "Projectile with mild noise",
+      "goal": "extract 2D trajectory and estimate gravity constant",
+      "description": "A single ball moving under projectile motion. Bright object, dark static background, small motion blur and noise."
+    },
+    "video": {
+      "path": "input_video.mp4",
+      "fps": null,
+      "resolution": null,
+      "camera": {
+        "fixed": true,
+        "pixel_origin": "topleft",
+        "gravity_direction_px": "positive_y"
+      }
+    },
+    "calibration": {
+      "world_scale": false,
+      "pixels_per_meter": null,
+      "reference_object": null
+    },
+    "objects": [
+      {
+        "name": "ball",
+        "count": 1,
+        "appearance": {
+          "color_hint": "red",
+          "shape": "circle",
+          "size_px_range": [5, 120]
+        }
+      }
+    ],
+    "roi": {
+      "spatial": null,
+      "temporal_frames": null
+    },
+    "measurements": {
+      "columns": [
+        "frame_index",
+        "time_s",
+        "x_px",
+        "y_px",
+        "visibility",
+        "confidence"
+      ],
+      "derivatives": {
+        "velocity": true,
+        "acceleration": false,
+        "smoothing": {
+          "method": "savitzky_golay",
+          "window": 11,
+          "polyorder": 2
+        }
+      }
+    },
+    "fitting": {
+      "model": "projectile_2d_no_drag",
+      "estimate_params": ["g", "v0", "angle"],
+      "report_metrics": ["RMSE_px", "R2"]
+    },
+    "detection": {
+      "method": "auto",
+      "color_bgr_hint": [40, 40, 200],
+      "background_subtraction": true,
+      "thresholding": "adaptive"
+    },
+    "tracking": {
+      "use_kalman": true,
+      "max_missed_frames": 10
+    },
+    "outputs": {
+      "csv": "measurements.csv",
+      "plots": ["trajectory.png", "residuals.png"],
+      "annotated_video": "annotated.mp4"
+    },
+    "constraints": {
+      "offline_only": true,
+      "time_budget_minutes": 5
+    }
+  }
+  

@@ -1,0 +1,468 @@
+Enhanced Problem + Code Structure Description (Advanced Prompt Template)
+===========================================================================
+
+The task is to automatically analyze a video of a physical experiment or motion scenario using advanced computer vision and AI tools. The input consists of a video file and a natural-language description of what the video contains (e.g., a toy car on an inclined plane moving under gravity, a ball in projectile motion, a pendulum, a block sliding). The goal is to extract relevant measurement data from the video and produce a structured table (CSV or Pandas DataFrame) that contains per-frame information such as time, object position, velocity, acceleration, or other features relevant to the physical law under investigation.
+
+Advanced Capabilities:
+- Traditional CV: OpenCV-based detection (HSV thresholding, contour detection, optical flow)
+- Foundation Models: DINOv2 for object detection and segmentation
+- LLM Integration: GPT-4V for scene understanding and physics interpretation
+- Multi-modal Analysis: Combine vision models with physics simulation
+- Adaptive Processing: Dynamic parameter tuning based on video content
+
+The generated Python code should be self-contained, modular, and organized with clear sections:
+(1) Configuration & Setup (traditional CV + advanced models)
+(2) Video Loading & Preprocessing
+(3) Multi-modal Object Detection & Tracking (CV + DINO + LLM)
+(4) Data Extraction & Physics Analysis
+(5) Adaptive Parameter Tuning
+(6) Results Visualization & Validation
+(7) Saving Results (CSV, annotated video, physics reports)
+
+Code Template Skeleton with Advanced Tools
+==========================================
+
+"""
+Enhanced Automatic Video Analysis Script with Advanced CV & AI Tools
+---------------------------------------------------------------------
+This script ingests a video and extracts measurement data per frame
+for physics/motion analysis using:
+- Traditional CV (OpenCV)
+- DINOv2 for object detection
+- GPT-4V for scene understanding
+- Adaptive parameter tuning
+"""
+
+import cv2
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from pathlib import Path
+from typing import Dict, List, Tuple, Optional, Any
+import json
+import time
+from dataclasses import dataclass, field
+import torch
+import requests
+from PIL import Image
+import base64
+import io
+
+# ========== 1. Advanced Configuration ==========
+
+@dataclass
+class DetectionConfig:
+    # Traditional CV settings
+    method: str = "hybrid"  # 'hsv' | 'threshold' | 'dino' | 'gpt4v' | 'hybrid'
+    hsv_lower: List[int] = field(default_factory=lambda: [0, 90, 70])
+    hsv_upper: List[int] = field(default_factory=lambda: [10, 255, 255])
+    min_area: int = 40
+    morph_kernel: int = 5
+
+    # DINO settings
+    dino_model: str = "facebook/dinov2-base"  # or dinov2-large, dinov2-giant
+    dino_threshold: float = 0.5
+    dino_patch_size: int = 14
+
+    # GPT-4V settings
+    gpt4v_api_key: Optional[str] = None
+    gpt4v_model: str = "gpt-4-vision-preview"
+    gpt4v_prompt_template: str = """
+    Analyze this video frame from a physics experiment. Describe:
+    1. What objects are visible and their positions
+    2. The motion scenario (e.g., projectile, inclined plane, pendulum)
+    3. Key physical features (trajectory, forces, energy)
+    4. Precise coordinates of moving objects in pixel space
+    Provide response as JSON with format:
+    {
+        "objects": [{"name": "car", "bbox": [x,y,w,h], "center": [cx,cy]}],
+        "scenario": "inclined_plane",
+        "physics_hints": ["gravity", "friction"]
+    }
+    """
+
+@dataclass
+class LLMConfig:
+    enabled: bool = True
+    model: str = "gpt-4-vision-preview"
+    api_key: Optional[str] = None
+    temperature: float = 0.1
+    max_tokens: int = 500
+    system_prompt: str = """
+    You are a physics analysis assistant. Analyze video frames to understand
+    motion scenarios, identify objects, and extract quantitative measurements.
+    Focus on precision, physical accuracy, and providing structured JSON responses.
+    """
+
+@dataclass
+class PhysicsConfig:
+    scenario: str = "auto"  # 'auto' | 'projectile' | 'inclined_plane' | 'pendulum' | 'collision'
+    gravity: float = 9.81
+    friction_model: str = "none"  # 'none' | 'simple' | 'advanced'
+    adaptive_calibration: bool = True
+
+# ========== 2. Advanced Detection Classes ==========
+
+class DINODetector:
+    """DINOv2-based object detection and segmentation"""
+    def __init__(self, config: DetectionConfig):
+        self.config = config
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # Note: In real implementation, load actual DINO model
+        # self.model = torch.hub.load('facebookresearch/dinov2', config.dino_model)
+        print(f"DINO detector initialized with {config.dino_model}")
+
+    def detect(self, frame: np.ndarray) -> List[Dict]:
+        """Detect objects using DINOv2"""
+        # Placeholder implementation
+        # In real code, this would process frame through DINO model
+        return [{"bbox": [100, 100, 50, 50], "confidence": 0.9, "class": "vehicle"}]
+
+class GPT4VAnalyzer:
+    """GPT-4V integration for scene understanding"""
+    def __init__(self, config: LLMConfig):
+        self.config = config
+        self.api_key = config.api_key
+
+    def analyze_frame(self, frame: np.ndarray, prompt: str) -> Dict:
+        """Analyze frame using GPT-4V"""
+        if not self.api_key:
+            return {"error": "No API key provided"}
+
+        # Convert frame to base64
+        pil_image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        buffer = io.BytesIO()
+        pil_image.save(buffer, format="JPEG")
+        img_base64 = base64.b64encode(buffer.getvalue()).decode()
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.api_key}"
+        }
+
+        payload = {
+            "model": self.config.model,
+            "messages": [
+                {"role": "system", "content": self.config.system_prompt},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {"url": f"data:image/jpeg;base64,{img_base64}"}
+                        }
+                    ]
+                }
+            ],
+            "max_tokens": self.config.max_tokens,
+            "temperature": self.config.temperature
+        }
+
+        try:
+            response = requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            return response.json()
+        except Exception as e:
+            return {"error": str(e)}
+
+class HybridDetector:
+    """Combines multiple detection methods for robust tracking"""
+    def __init__(self, config: DetectionConfig, llm_config: LLMConfig):
+        self.traditional_detector = TraditionalDetector(config)
+        self.dino_detector = DINODetector(config) if config.method in ['dino', 'hybrid'] else None
+        self.gpt4v_analyzer = GPT4VAnalyzer(llm_config) if config.method in ['gpt4v', 'hybrid'] else None
+        self.config = config
+
+    def detect(self, frame: np.ndarray) -> Tuple[Optional[Tuple[int, int]], Dict]:
+        """Multi-modal detection with confidence fusion"""
+        results = {}
+        positions = []
+        confidences = []
+
+        # Traditional CV detection
+        trad_pos = self.traditional_detector.detect(frame)
+        if trad_pos:
+            positions.append(trad_pos)
+            confidences.append(0.7)  # Traditional CV confidence
+            results['traditional'] = trad_pos
+
+        # DINO detection
+        if self.dino_detector:
+            dino_results = self.dino_detector.detect(frame)
+            if dino_results:
+                # Extract center from first detection
+                bbox = dino_results[0]['bbox']
+                center = (bbox[0] + bbox[2]//2, bbox[1] + bbox[3]//2)
+                positions.append(center)
+                confidences.append(dino_results[0]['confidence'])
+                results['dino'] = center
+
+        # GPT-4V analysis
+        if self.gpt4v_analyzer:
+            prompt = f"Extract the precise center coordinates of the main moving object in this physics experiment frame."
+            gpt_response = self.gpt4v_analyzer.analyze_frame(frame, prompt)
+            # Parse GPT response for coordinates
+            # This would need proper JSON parsing in real implementation
+            results['gpt4v'] = gpt_response
+
+        # Fuse results (simple averaging for now)
+        if positions:
+            avg_x = int(np.mean([p[0] for p in positions]))
+            avg_y = int(np.mean([p[1] for p in positions]))
+            return (avg_x, avg_y), results
+
+        return None, results
+
+class TraditionalDetector:
+    """Traditional OpenCV-based detection"""
+    def __init__(self, config: DetectionConfig):
+        self.config = config
+
+    def detect(self, frame: np.ndarray) -> Optional[Tuple[int, int]]:
+        """Traditional HSV-based detection"""
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, np.array(self.config.hsv_lower), np.array(self.config.hsv_upper))
+
+        if self.config.morph_kernel > 1:
+            kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (self.config.morph_kernel, self.config.morph_kernel))
+            mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+            mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if contours:
+            c = max(contours, key=cv2.contourArea)
+            if cv2.contourArea(c) > self.config.min_area:
+                M = cv2.moments(c)
+                if M["m00"] > 0:
+                    cx = int(M["m10"] / M["m00"])
+                    cy = int(M["m01"] / M["m00"])
+                    return (cx, cy)
+        return None
+
+# ========== 3. Adaptive Parameter Tuning ==========
+
+class AdaptiveTuner:
+    """Adaptive parameter tuning based on video content and performance"""
+    def __init__(self):
+        self.performance_history = []
+
+    def tune_parameters(self, frame: np.ndarray, current_config: DetectionConfig,
+                       detection_success: bool) -> DetectionConfig:
+        """Adapt detection parameters based on performance"""
+        # Simple adaptation: adjust HSV ranges if detection fails
+        if not detection_success:
+            # Broaden HSV ranges slightly
+            new_config = DetectionConfig(**current_config.__dict__)
+            new_config.hsv_lower = [max(0, h-5) for h in new_config.hsv_lower]
+            new_config.hsv_upper = [min(255, h+5) for h in new_config.hsv_upper]
+            return new_config
+        return current_config
+
+# ========== 4. Main Analysis Pipeline ==========
+
+def analyze_video_enhanced(video_path: str, output_dir: str = "enhanced_output",
+                          config_path: Optional[str] = None) -> pd.DataFrame:
+    """Enhanced video analysis with advanced CV and AI tools"""
+
+    # Load configuration
+    if config_path and Path(config_path).exists():
+        with open(config_path, 'r') as f:
+            config_data = json.load(f)
+        detection_config = DetectionConfig(**config_data.get('detection', {}))
+        llm_config = LLMConfig(**config_data.get('llm', {}))
+        physics_config = PhysicsConfig(**config_data.get('physics', {}))
+    else:
+        # Default configuration for toy car on inclined plane
+        detection_config = DetectionConfig(
+            method="hybrid",
+            hsv_lower=[0, 50, 50],  # Adjust for car color
+            hsv_upper=[30, 255, 255],
+            dino_threshold=0.6
+        )
+        llm_config = LLMConfig(enabled=True)
+        physics_config = PhysicsConfig(scenario="inclined_plane")
+
+    # Initialize detectors
+    hybrid_detector = HybridDetector(detection_config, llm_config)
+    adaptive_tuner = AdaptiveTuner()
+
+    # Load video
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        raise IOError(f"Cannot open video {video_path}")
+
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    # Setup output directory
+    output_path = Path(output_dir)
+    output_path.mkdir(exist_ok=True)
+
+    # Setup video writer for annotated output
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    annotated_writer = cv2.VideoWriter(
+        str(output_path / "enhanced_annotated.mp4"),
+        fourcc, fps, (width, height)
+    )
+
+    measurements = []
+    frame_idx = 0
+    current_config = detection_config
+
+    print("Starting enhanced video analysis...")
+    print(f"Using detection method: {current_config.method}")
+    print(f"LLM analysis: {'Enabled' if llm_config.enabled else 'Disabled'}")
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        t = frame_idx / fps
+
+        # Adaptive detection
+        pos, detection_results = hybrid_detector.detect(frame)
+        detection_success = pos is not None
+
+        # Adaptive parameter tuning
+        if physics_config.adaptive_calibration and frame_idx > 10:
+            current_config = adaptive_tuner.tune_parameters(
+                frame, current_config, detection_success
+            )
+
+        # Record measurements
+        measurement = {
+            "frame": frame_idx,
+            "time_s": t,
+            "detection_method": current_config.method,
+            "detection_success": detection_success
+        }
+
+        if pos:
+            measurement.update({
+                "x_px": pos[0],
+                "y_px": pos[1]
+            })
+            # Draw detection
+            cv2.circle(frame, pos, 8, (0, 255, 0), -1)
+            cv2.putText(frame, f"Pos: ({pos[0]}, {pos[1]})", (10, 30),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        else:
+            measurement.update({"x_px": None, "y_px": None})
+
+        # Add detection results metadata
+        measurement["detection_metadata"] = detection_results
+        measurements.append(measurement)
+
+        # Write annotated frame
+        cv2.putText(frame, ".2f", (10, height-30),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        annotated_writer.write(frame)
+
+        frame_idx += 1
+        if frame_idx % 50 == 0:
+            print(f"Processed {frame_idx} frames...")
+
+    cap.release()
+    annotated_writer.release()
+
+    # Convert to DataFrame
+    df = pd.DataFrame(measurements)
+
+    # Save results
+    df.to_csv(output_path / "enhanced_measurements.csv", index=False)
+
+    # Generate analysis report
+    generate_physics_report(df, output_path, physics_config)
+
+    print(f"Enhanced analysis complete! Results saved to {output_path}")
+    return df
+
+def generate_physics_report(df: pd.DataFrame, output_dir: Path, physics_config: PhysicsConfig):
+    """Generate physics analysis report"""
+    report = {
+        "total_frames": len(df),
+        "detection_success_rate": df['detection_success'].mean(),
+        "physics_scenario": physics_config.scenario,
+        "analysis_timestamp": time.time(),
+        "recommendations": []
+    }
+
+    # Basic physics analysis
+    valid_positions = df.dropna(subset=['x_px', 'y_px'])
+    if len(valid_positions) > 5:
+        # Simple motion analysis
+        x = valid_positions['x_px'].values
+        y = valid_positions['y_px'].values
+        t = valid_positions['time_s'].values
+
+        # Calculate basic derivatives
+        vx = np.gradient(x, t)
+        vy = np.gradient(y, t)
+        speed = np.sqrt(vx**2 + vy**2)
+
+        report["motion_stats"] = {
+            "avg_speed": float(np.mean(speed)),
+            "max_speed": float(np.max(speed)),
+            "total_displacement": float(np.sqrt((x[-1]-x[0])**2 + (y[-1]-y[0])**2))
+        }
+
+        if physics_config.scenario == "inclined_plane":
+            report["recommendations"].append("Consider analyzing gravitational acceleration component")
+            report["recommendations"].append("Check for constant velocity regions indicating terminal velocity")
+
+    # Save report
+    with open(output_dir / "physics_report.json", 'w') as f:
+        json.dump(report, f, indent=2)
+
+# ========== 5. Example Usage ==========
+
+def example_toy_car_analysis():
+    """Example analysis for toy car on inclined plane"""
+
+    # Configuration for toy car scenario
+    config = {
+        "detection": {
+            "method": "hybrid",
+            "hsv_lower": [5, 50, 50],    # Adjust for car color
+            "hsv_upper": [25, 255, 255],
+            "dino_threshold": 0.6,
+            "min_area": 100
+        },
+        "llm": {
+            "enabled": True,
+            "model": "gpt-4-vision-preview",
+            "system_prompt": """
+            You are analyzing a video of a toy car moving down an inclined plane.
+            Focus on: car position, motion trajectory, gravitational effects.
+            Provide precise measurements and physics insights.
+            """
+        },
+        "physics": {
+            "scenario": "inclined_plane",
+            "gravity": 9.81,
+            "adaptive_calibration": True
+        }
+    }
+
+    # Save config
+    with open("toy_car_config.json", 'w') as f:
+        json.dump(config, f, indent=2)
+
+    # Run analysis
+    video_path = "2419_1744339511.mp4"  # Your sample video
+    results = analyze_video_enhanced(video_path, "toy_car_output", "toy_car_config.json")
+
+    print("Toy car analysis complete!")
+    print(f"Processed {len(results)} frames")
+    print(f"Detection success rate: {results['detection_success'].mean():.2%}")
+
+if __name__ == "__main__":
+    example_toy_car_analysis()
+

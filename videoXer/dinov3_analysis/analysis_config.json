@@ -1,0 +1,97 @@
+{
+  "detection": {
+    "method": "hybrid",
+    "traditional_cv": {
+      "enabled": true,
+      "hsv_lower": [
+        5,
+        50,
+        50
+      ],
+      "hsv_upper": [
+        25,
+        255,
+        255
+      ],
+      "hsv_lower2": [
+        160,
+        50,
+        50
+      ],
+      "hsv_upper2": [
+        179,
+        255,
+        255
+      ],
+      "morph_kernel": 7,
+      "min_area": 200,
+      "roi": null,
+      "invert_threshold": false,
+      "threshold_value": 127,
+      "use_hough": false,
+      "hough_dp": 1.2,
+      "hough_minDist": 20.0,
+      "hough_param1": 100.0,
+      "hough_param2": 30.0,
+      "hough_minRadius": 10,
+      "hough_maxRadius": 100
+    },
+    "dino": {
+      "enabled": true,
+      "model": "facebook/dinov2-base",
+      "model_size": "base",
+      "threshold": 0.7,
+      "patch_size": 14,
+      "device": "auto",
+      "use_sam": false,
+      "sam_model": "sam_vit_h_4b8939.pth",
+      "segmentation": {
+        "enabled": true,
+        "min_mask_area": 1000,
+        "max_mask_area": 50000
+      }
+    },
+    "llm": {
+      "enabled": true,
+      "backend": "ollama",
+      "model": "llava",
+      "api_key_env": "OPENAI_API_KEY",
+      "temperature": 0.1,
+      "max_tokens": 300,
+      "system_prompt": "\n            You are a physics analysis assistant specializing in vehicle motion on inclined planes.\n            Focus on: car detection, trajectory analysis, gravitational effects, friction considerations.\n            Provide precise measurements and physics insights for inclined plane scenarios.\n            ",
+      "user_prompt_template": "\n            Analyze this frame from a video of a toy car moving down an inclined plane.\n            Identify the car and extract: 1) Center coordinates of the car in pixels,\n            2) Orientation/pose of the car, 3) Any visible motion blur or speed indicators,\n            4) Physics-relevant observations about the inclined plane setup.\n            Respond with structured JSON: {\"car_center\": [x,y], \"confidence\": 0.0-1.0,\n            \"orientation\": \"angle_degrees\", \"observations\": [\"obs1\", \"obs2\"]}\n            ",
+      "rate_limit_delay": 1.0,
+      "cache_responses": true,
+      "fallback_mode": "traditional_cv",
+      "ollama_host": "http://localhost:11434",
+      "openai_model": "gpt-4-vision-preview"
+    },
+    "hybrid": {
+      "fusion_method": "weighted_average",
+      "weights": {
+        "traditional_cv": 0.4,
+        "dino": 0.4,
+        "llm": 0.2
+      },
+      "confidence_threshold": 0.3,
+      "fallback_chain": [
+        "llm",
+        "dino",
+        "traditional_cv"
+      ]
+    }
+  },
+  "physics": {
+    "scenario": "inclined_plane",
+    "gravity": 9.81,
+    "pixels_per_meter": null,
+    "y_axis_down": true,
+    "adaptive_calibration": true
+  },
+  "output": {
+    "csv_filename": "toy_car_measurements.csv",
+    "annotated_video_filename": "toy_car_annotated.mp4",
+    "plots_directory": "dinov3_analysis/plots",
+    "include_metadata": true
+  }
+}

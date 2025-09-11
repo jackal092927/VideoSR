@@ -1,0 +1,8 @@
+{
+  "detection_method": "hybrid",
+  "traditional_cv_enabled": true,
+  "dino_enabled": true,
+  "gpt4v_enabled": true,
+  "physics_scenario": "inclined_plane",
+  "gravity": 9.81
+}

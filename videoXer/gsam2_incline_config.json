@@ -1,0 +1,38 @@
+{
+  "gsam2": {
+    "run_gsam2": true,
+    "repo_dir": "/path/to/Grounded-SAM-2",
+    "entry": null,
+    "text_threshold": 0.25,
+    "box_threshold": 0.25,
+    "mask_output": true,
+    "results_dir": null
+  },
+  "incline": {
+    "auto_detect": true,
+    "manual_points": null,
+    "pre_blur_ksize": 5,
+    "canny1": 60,
+    "canny2": 140,
+    "houghP_threshold": 70,
+    "houghP_min_line_len": 80,
+    "houghP_max_gap": 8,
+    "min_angle_deg": 10.0,
+    "max_angle_deg": 80.0
+  },
+  "tracking": {
+    "smooth_method": "savgol",
+    "smooth_window": 9,
+    "smooth_poly": 2
+  },
+  "physics": {
+    "pixels_per_meter": null,
+    "y_axis_down": true
+  },
+  "output": {
+    "annotated_video": true,
+    "csv_name": "measurements.csv",
+    "annotated_name": "annotated.mp4",
+    "plots_prefix": "plot"
+  }
+}

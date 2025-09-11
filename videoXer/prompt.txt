@@ -1,0 +1,95 @@
+Problem + Code Structure Description (Prompt Paragraph)
+
+The task is to automatically analyze a video of a physical experiment or motion scenario. The input consists of a video file and a natural-language description of what the video contains (e.g., a ball in projectile motion, a pendulum, a block sliding). The goal is to extract relevant measurement data from the video and produce a structured table (CSV or Pandas DataFrame) that contains per-frame information such as time, object position, velocity, acceleration, or other features relevant to the physical law under investigation. The generated Python code should be self-contained, modular, and organized with clear sections: (1) video loading and preprocessing, (2) object detection and tracking, (3) data extraction per frame, (4) optional smoothing/denoising and derivative computation, (5) saving results as CSV, and (6) optional visualization (plots, annotated video). The code should rely only on common scientific Python libraries (e.g., OpenCV, NumPy, SciPy, matplotlib, pandas). The output should enable downstream analysis to test hypotheses about underlying motion or physics laws.
+
+Code Template Skeleton
+
+"""
+Template: Automatic Video Analysis Script
+-----------------------------------------
+This script ingests a video and extracts measurement data per frame
+for physics/motion analysis. It is structured so that additional
+object tracking or physics models can be plugged in later.
+"""
+
+import cv2
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+# ========== 1. Config ==========
+VIDEO_PATH = "input_video.mp4"
+OUTPUT_CSV = "measurements.csv"
+ANNOTATED_VIDEO = "annotated.mp4"
+FPS = None  # auto-detect if None
+
+# ========== 2. Helper Functions ==========
+def load_video(path):
+    cap = cv2.VideoCapture(str(path))
+    if not cap.isOpened():
+        raise IOError(f"Cannot open video {path}")
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    return cap, fps
+
+def detect_object(frame):
+    """
+    Implement detection here (e.g., color threshold, contour).
+    Return (x, y) position in pixels, or None if not detected.
+    """
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+    cnts, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if cnts:
+        c = max(cnts, key=cv2.contourArea)
+        M = cv2.moments(c)
+        if M["m00"] > 0:
+            cx = int(M["m10"] / M["m00"])
+            cy = int(M["m01"] / M["m00"])
+            return cx, cy
+    return None
+
+# ========== 3. Main Extraction Loop ==========
+def analyze_video(video_path, out_csv, annotated_path=None):
+    cap, fps = load_video(video_path)
+    fps = fps if FPS is None else FPS
+    measurements = []
+    
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    writer = None
+    if annotated_path:
+        width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        writer = cv2.VideoWriter(annotated_path, fourcc, fps, (width, height))
+    
+    frame_idx = 0
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        t = frame_idx / fps
+        pos = detect_object(frame)
+        
+        row = {"frame": frame_idx, "time_s": t}
+        if pos:
+            row.update({"x_px": pos[0], "y_px": pos[1]})
+            cv2.circle(frame, pos, 5, (0, 0, 255), -1)
+        else:
+            row.update({"x_px": None, "y_px": None})
+        
+        measurements.append(row)
+        if writer:
+            writer.write(frame)
+        frame_idx += 1
+    
+    cap.release()
+    if writer:
+        writer.release()
+    
+    df = pd.DataFrame(measurements)
+    df.to_csv(out_csv, index=False)
+    print(f"Saved {len(df)} frames to {out_csv}")
+
+# ========== 4. Run ==========
+if __name__ == "__main__":
+    analyze_video(VIDEO_PATH, OUTPUT_CSV, ANNOTATED_VIDEO)

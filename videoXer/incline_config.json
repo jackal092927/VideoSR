@@ -1,0 +1,56 @@
+{
+  "incline": {
+    "auto_detect": true,
+    "band_halfwidth_px": 28,
+    "min_angle_deg": 10.0,
+    "max_angle_deg": 80.0
+  },
+  "fg": {
+    "bg_samples": 60,
+    "bg_stride": 5,
+    "diff_thresh": 28,
+    "morph_kernel": 5,
+    "min_area": 120
+  },
+  "color": {
+    "enable_include": false,
+    "include_hsv_lower": [
+      0,
+      0,
+      0
+    ],
+    "include_hsv_upper": [
+      179,
+      255,
+      255
+    ],
+    "enable_exclude_skin": true,
+    "skin_lower": [
+      0,
+      40,
+      60
+    ],
+    "skin_upper": [
+      25,
+      180,
+      255
+    ]
+  },
+  "tracking": {
+    "prefer_monotonic_downhill": true,
+    "gate_px": 70.0,
+    "smooth_method": "savgol",
+    "smooth_window": 9,
+    "smooth_poly": 2
+  },
+  "physics": {
+    "pixels_per_meter": null,
+    "y_axis_down": true
+  },
+  "output": {
+    "annotated_video": true,
+    "csv_name": "incline_measurements.csv",
+    "annotated_name": "incline_annotated.mp4",
+    "plots_prefix": "incline_plot"
+  }
+}
