@@ -1,0 +1,1 @@
+python -m llm_video_agent.main --video datasets/C/C_projectile.mp4 --prompt "Track the green ball doing linear motion. Distractors: red square, blue ball. Use HSV for green; ignore red wrap; avoid Kalman." --outdir runs/C/C_projectile_green --backend llmsr_hybrid --llm-host http://127.0.0.1 --llm-port 8000 --denoiser none --overlay-no-fit

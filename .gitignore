@@ -6,5 +6,8 @@
 /outputs/*
 /video-physics-v0/outputs/*
 run.sh
-
-
+runs/*
+out_hybrid/*
+out_hybrid_good/*
+out_hybrid2/*
+out_* 
